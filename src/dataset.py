@@ -40,21 +40,23 @@ class MyDataset(Dataset):
     def __getitem__(self, index):
         label = self.labels[index]
         text = self.texts[index]
+        #先讀取sentence，在讀取其中的每個word，如果word在self.dict，則將word轉成index，否則存為-1，一個sentence存成一個list
         document_encode = [
-            [self.dict.index(word) if word in self.dict else -1 for word in word_tokenize(text=sentences)] for sentences
-            in
-            sent_tokenize(text=text)]
+            [self.dict.index(word) if word in self.dict else -1
+             for word in word_tokenize(text=sentences)] for sentences in sent_tokenize(text=text)]
 
+        #將長度不到的word padding
         for sentences in document_encode:
             if len(sentences) < self.max_length_word:
                 extended_words = [-1 for _ in range(self.max_length_word - len(sentences))]
                 sentences.extend(extended_words)
-
+        # 將長度不到的sentence padding
         if len(document_encode) < self.max_length_sentences:
             extended_sentences = [[-1 for _ in range(self.max_length_word)] for _ in
                                   range(self.max_length_sentences - len(document_encode))]
             document_encode.extend(extended_sentences)
 
+        #將單一sentences list轉成sentences[max_length_word][max_length_sentences]
         document_encode = [sentences[:self.max_length_word] for sentences in document_encode][
                           :self.max_length_sentences]
 
