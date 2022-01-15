@@ -42,6 +42,7 @@ def train(opt):
         torch.cuda.manual_seed(123)
     else:
         torch.manual_seed(123)
+    #os.sep 是根據作業系統給出'\' or  '/'
     output_file = open(opt.saved_path + os.sep + "logs.txt", "w")
     output_file.write("Model's parameters: {}".format(vars(opt)))
     training_params = {"batch_size": opt.batch_size,
@@ -60,10 +61,11 @@ def train(opt):
     model = HierAttNet(opt.word_hidden_size, opt.sent_hidden_size, opt.batch_size, training_set.num_classes,
                        opt.word2vec_path, max_sent_length, max_word_length)
 
-
+    #刪除一整個完整的目錄樹
     if os.path.isdir(opt.log_path):
         shutil.rmtree(opt.log_path)
     os.makedirs(opt.log_path)
+    #用於產生tensorboard
     writer = SummaryWriter(opt.log_path)
     # writer.add_graph(model, torch.zeros(opt.batch_size, max_sent_length, max_word_length))
 
@@ -75,6 +77,7 @@ def train(opt):
     best_loss = 1e5
     best_epoch = 0
     model.train()
+    #總共有幾組batch
     num_iter_per_epoch = len(training_generator)
     for epoch in range(opt.num_epoches):
         for iter, (feature, label) in enumerate(training_generator):
@@ -97,6 +100,7 @@ def train(opt):
                 loss, training_metrics["accuracy"]))
             writer.add_scalar('Train/Loss', loss, epoch * num_iter_per_epoch + iter)
             writer.add_scalar('Train/Accuracy', training_metrics["accuracy"], epoch * num_iter_per_epoch + iter)
+        #每隔opt.test_interval就進行test，這個做法比較像validation
         if epoch % opt.test_interval == 0:
             model.eval()
             loss_ls = []
@@ -132,6 +136,7 @@ def train(opt):
             writer.add_scalar('Test/Loss', te_loss, epoch)
             writer.add_scalar('Test/Accuracy', test_metrics["accuracy"], epoch)
             model.train()
+            #儲存最低的loss模型
             if te_loss + opt.es_min_delta < best_loss:
                 best_loss = te_loss
                 best_epoch = epoch

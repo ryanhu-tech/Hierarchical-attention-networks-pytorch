@@ -25,14 +25,19 @@ class SentAttNet(nn.Module):
         self.context_weight.data.normal_(mean, std)
 
     def forward(self, input, hidden_state):
-
+        #input [sentence_length,bs, 2*hidden_state]
+        #f_output [sentence_length,bs, 2*hidden_state]
         f_output, h_output = self.gru(input, hidden_state)
+        #對應公式(8)
         output = matrix_mul(f_output, self.sent_weight, self.sent_bias)
+        #對應公式(9)
         output = matrix_mul(output, self.context_weight).permute(1, 0)
-        output = F.softmax(output)
+        #[bs, 2*hidden_state]
+        output = F.softmax(output, dim=1)
+        #對應公式(10)
         output = element_wise_mul(f_output, output.permute(1, 0)).squeeze(0)
         output = self.fc(output)
-
+        #[bs, class_number]
         return output, h_output
 
 

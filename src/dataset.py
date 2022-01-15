@@ -68,4 +68,5 @@ class MyDataset(Dataset):
 
 if __name__ == '__main__':
     test = MyDataset(data_path="../data/test.csv", dict_path="../data/glove.6B.50d.txt")
+    #第0篇文章，30個sentence，35個字(30,35)
     print (test.__getitem__(index=1)[0].shape)
